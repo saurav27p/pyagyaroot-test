@@ -33,12 +33,14 @@ function initDarkMode() {
   if (!button) return;
 
   button.addEventListener('click', () => {
-    root.classList.toggle('is-dark');
-    localStorage.setItem(
-      'theme',
-      root.classList.contains('is-dark') ? 'dark' : 'light'
-    );
+    const isDark = root.classList.toggle('is-dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   });
+
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    root.classList.add('is-dark');
+  }
 }
 
 function initMobileMenu() {
@@ -47,7 +49,8 @@ function initMobileMenu() {
   if (!toggle || !nav) return;
 
   toggle.addEventListener('click', () => {
-    nav.classList.toggle('open');
+    const isOpen = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
   });
 }
 

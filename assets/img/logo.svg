@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PragyaRoot" viewBox="0 0 240 60">
+  <rect width="240" height="60" rx="16" fill="#f8f3e6"/>
+  <path d="M20 42V18h18c6 0 10 4 10 9s-4 9-10 9H30v6H20zm10-10h8c2.5 0 4-1.7 4-4s-1.5-4-4-4h-8v8z" fill="#D4AF37"/>
+  <text x="58" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#0a0a0a">PragyaRoot</text>
+</svg>
