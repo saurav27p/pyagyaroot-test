@@ -1,68 +1,83 @@
-const layoutScript = document.currentScript;
-const siteRoot = layoutScript
-  ? new URL('../../', layoutScript.src)
-  : new URL('./', window.location.href);
+/* ============================================================
+   PragyaRoot — Master Layout Script
+   Injects header + footer, handles theme toggle, mobile menu,
+   and auto-updates the footer year.
+   ============================================================ */
 
-async function loadPartial(path, targetId) {
-  const target = document.getElementById(targetId);
-  if (!target) return;
+(function () {
+  'use strict';
 
-  try {
-    const response = await fetch(new URL(path, siteRoot));
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    target.innerHTML = await response.text();
-  } catch (error) {
-    console.error(`Could not load ${path}:`, error);
+  // -------- 1. Inject Header & Footer --------
+  function injectPartial(placeholderId, file, callback) {
+    var el = document.getElementById(placeholderId);
+    if (!el) return;
+
+    fetch(file)
+      .then(function (res) {
+        if (!res.ok) throw new Error('Failed to load ' + file);
+        return res.text();
+      })
+      .then(function (html) {
+        el.innerHTML = html;
+        if (typeof callback === 'function') callback();
+      })
+      .catch(function (err) {
+        console.warn('[PragyaRoot] ' + err.message);
+      });
   }
-}
 
-async function initLayout() {
-  await Promise.all([
-    loadPartial('partials/header.html', 'header-placeholder'),
-    loadPartial('partials/footer.html', 'footer-placeholder')
-  ]);
-
-  initDarkMode();
-  initMobileMenu();
-  markActiveNavLink();
-}
-
-function initDarkMode() {
-  const root = document.documentElement;
-  const button = document.getElementById('darkmode-toggle');
-  if (!button) return;
-
-  button.addEventListener('click', () => {
-    const isDark = root.classList.toggle('is-dark');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  document.addEventListener('DOMContentLoaded', function () {
+    injectPartial('header-placeholder', 'assets/partials/header.html', initHeader);
+    injectPartial('footer-placeholder', 'assets/partials/footer.html', initFooter);
   });
 
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    root.classList.add('is-dark');
-  }
-}
-
-function initMobileMenu() {
-  const toggle = document.getElementById('mobile-menu-toggle');
-  const nav = document.getElementById('main-nav');
-  if (!toggle || !nav) return;
-
-  toggle.addEventListener('click', () => {
-    const isOpen = nav.classList.toggle('open');
-    toggle.setAttribute('aria-expanded', String(isOpen));
-  });
-}
-
-function markActiveNavLink() {
-  const current = window.location.pathname.split('/').pop() || 'index.html';
-
-  document.querySelectorAll('#main-nav a').forEach((link) => {
-    const href = link.getAttribute('href');
-    if (href && new URL(href, window.location.href).pathname.split('/').pop() === current) {
-      link.classList.add('active');
+  // -------- 2. Header interactions --------
+  function initHeader() {
+    // Theme toggle
+    var toggle = document.getElementById('themeToggle');
+    if (toggle) {
+      updateThemeIcon(toggle);
+      toggle.addEventListener('click', function () {
+        var isDark = document.documentElement.classList.toggle('is-dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        updateThemeIcon(toggle);
+      });
     }
-  });
-}
 
-document.addEventListener('DOMContentLoaded', initLayout);
+    // Mobile burger
+    var burger = document.getElementById('prBurger');
+    var nav = document.getElementById('prNav');
+    if (burger && nav) {
+      burger.addEventListener('click', function () {
+        var open = nav.classList.toggle('is-open');
+        burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        burger.innerHTML = open
+          ? '<i class="fas fa-times"></i>'
+          : '<i class="fas fa-bars"></i>';
+      });
+
+      // Close menu when a link is clicked
+      nav.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () {
+          nav.classList.remove('is-open');
+          burger.setAttribute('aria-expanded', 'false');
+          burger.innerHTML = '<i class="fas fa-bars"></i>';
+        });
+      });
+    }
+  }
+
+  function updateThemeIcon(btn) {
+    var isDark = document.documentElement.classList.contains('is-dark');
+    btn.innerHTML = isDark
+      ? '<i class="fas fa-sun"></i>'
+      : '<i class="fas fa-moon"></i>';
+  }
+
+  // -------- 3. Footer interactions --------
+  function initFooter() {
+    var yearEl = document.getElementById('prYear');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+  }
+
+})();
